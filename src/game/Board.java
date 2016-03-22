@@ -2,6 +2,8 @@ package game;
 
 import java.awt.Color;
 import java.awt.GridLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.File;
 import java.util.HashMap;
 
@@ -17,12 +19,61 @@ public class Board extends JPanel {
 
 	private HashMap<String, ImageIcon> piecesImages;
 
+	private Position squareSelected;
+
 	public Board() {
 		setLayout(new GridLayout(8, 8));
 
 		initGrid();
 		loadImages();
 		updateGrid();
+		addListener();
+	}
+
+	public void addListener() {
+		for (int line = 0; line < 8; line++) {
+			for (int column = 0; column < 8; column++) {
+				final int l = line;
+				final int c = column;
+
+				grid[l][c].addActionListener(new ActionListener() {
+
+					@Override
+					public void actionPerformed(ActionEvent e) {
+
+						colorGrid();
+
+						if (squareSelected != null) {
+							Piece pieceSelected = grid[squareSelected.getLine()][squareSelected.getColumn()].getValue();
+							for (Position p : pieceSelected.getPossibleMoves()) {
+								if (l == p.getLine() && c == p.getColumn()) {
+									grid[l][c].setValue(pieceSelected);
+
+									Square tmp = new Square();
+									grid[squareSelected.getLine()][squareSelected.getColumn()] = tmp;
+									updateGrid();
+									addButtons();
+								}
+							}
+							squareSelected = null;
+						} else {
+							squareSelected = null;
+							if (!grid[l][c].isEmpty()) {
+								squareSelected = new Position(l, c);
+								grid[l][c].getValue().updatePossibleMoves(l, c, grid);
+								grid[l][c].setBackground(new Color(63, 132, 7));
+								for (Position p : grid[l][c].getValue().getPossibleMoves()) {
+									if (isDarkSquare(p.getLine(), p.getColumn()))
+										grid[p.getLine()][p.getColumn()].setBackground(new Color(143, 212, 87));
+									else
+										grid[p.getLine()][p.getColumn()].setBackground(new Color(153, 222, 97));
+								}
+							}
+						}
+					}
+				});
+			}
+		}
 	}
 
 	public void updateGrid() {
@@ -33,6 +84,8 @@ public class Board extends JPanel {
 						grid[line][column].setIcon(piecesImages.get("0" + grid[line][column].getValue().getType()));
 					else
 						grid[line][column].setIcon(piecesImages.get("1" + grid[line][column].getValue().getType()));
+				} else {
+					grid[line][column].setIcon(null);
 				}
 			}
 		}
@@ -42,17 +95,35 @@ public class Board extends JPanel {
 		return (line % 2 != column % 2);
 	}
 
+	private void colorGrid() {
+		for (int line = 0; line < 8; line++) {
+			for (int column = 0; column < 8; column++) {
+				if (isDarkSquare(line, column))
+					grid[line][column].setBackground(new Color(141, 85, 36));
+				else
+					grid[line][column].setBackground(new Color(255, 219, 172));
+			}
+		}
+	}
+
+	public void addButtons() {
+		removeAll();
+
+		for (int line = 0; line < 8; line++) {
+			for (int column = 0; column < 8; column++) {
+				add(grid[line][column]);
+			}
+		}
+
+		colorGrid();
+	}
+
 	public void initGrid() {
 		grid = new Square[8][8];
 
 		for (int line = 0; line < 8; line++) {
 			for (int column = 0; column < 8; column++) {
 				Square tmp = new Square();
-				tmp.setFocusable(false);
-				if (isDarkSquare(line, column))
-					tmp.setBackground(new Color(141, 85, 36));
-				else
-					tmp.setBackground(new Color(255, 219, 172));
 				grid[line][column] = tmp;
 			}
 		}
@@ -89,13 +160,7 @@ public class Board extends JPanel {
 			}
 		}
 
-		removeAll();
-
-		for (int line = 0; line < 8; line++) {
-			for (int column = 0; column < 8; column++) {
-				add(grid[line][column]);
-			}
-		}
+		addButtons();
 	}
 
 	public void loadImages() {

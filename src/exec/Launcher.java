@@ -60,7 +60,7 @@ public class Launcher extends JFrame {
 
 		setVisible(true);
 	}
-
+	
 	public void loadBackground() {
 		try {
 			originalBackgroundImage = new ImageIcon(ImageIO.read(new File("res/background.jpg")));

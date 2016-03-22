@@ -9,6 +9,7 @@ public class Square extends JButton {
 
 	public Square() {
 		super();
+		setFocusable(false);
 	}
 
 	public Piece getValue() {
@@ -19,4 +20,7 @@ public class Square extends JButton {
 		this.value = value;
 	}
 
+	public boolean isEmpty() {
+		return value == null;
+	}
 }
